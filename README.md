@@ -53,7 +53,7 @@ There are numerous NoSQL database categories, this includes
 ## What is MongoDB?
 MongoDB is an opensource NoSQL database management program. 
 It is a tool that can manage, store, or retrieve document-oriented information.
-## What ae collections in Mongo?
+## What are collections in Mongo?
 MongoDB stores data records as BSON documents which are gathered in collections.
 So simply a collection is **a collection of documents**.
 A database stores one or more collections of documents.
@@ -88,10 +88,96 @@ var mydoc = {
    1. Documents can be large, so Mongo will sometimes compress them.
 2. Users then create collections to hold documents, which have some important fields.
    1. _id index - a primary key to uniquely identify the document even across machines and shards.
-   2. Secondary indexes - Users can create secondary indexes 
+   2. Secondary indexes - Users can create secondary indexes which points back to the BSON document. This allows fast traversal using different fields, not just _id.
+
+
 
 ## What are replica sets?
+A replica set in MongoDB is a group of mongod processes that maintain the same data set.
+Replica sets provide redundancy and high availability, and are the basis for all production deployments.
+
 ## What is sharding?
+Sharding is a method for distributing data across multiple machines. 
+MongoDB uses sharding to support deployments with very large data sets and high throughput operations.
+Essentially, **sharding is MongoDBs implementation of horizontal scaling**
+
+MongoDB uses a shard key to distribute the collection's documents across shards. 
+The shard key consists of a field or multiple fields in the documents.
 ## Advantages and disadvantages
+
+### Advantages
+- Schema-less
+  - MongoDB doesn't require predefined schemas
+- Document-oriented
+  - Documents map to native data types in several programming languages
+- Scalability
+  - Horizontal scalability is useful for big data applications
+  - Sharding lets the user distribute data across a cluster of machines
+- Third-party support
+  - Supports several storage engines and supports pluggable storage APIs
+- Aggregation
+  - Built-in aggregation functions
+  - Run MapReduce code directly on the database
+
+### Disadvantages
+- Continuity
+    - Automatic failover means that when the master node fails, another takes over but takes up to a minute
+- Write limits
+  - The single master node limits how fast data can be written, as all writes must be recorded on the master
+- Data consistency
+  - No full referential integrity through foreign-key restraints
+- Security
+  - User authentication is not enabled by default
+
 ## Good MongoDB Scenarios
-## Bad MongoDB scenarios
+### Integrating large amounts of diverse data
+If you are bringing together tens or hundreds of data sources, the flexibility and power of the document model can create a single unified view in ways that other databases cannot.
+
+Example: Healthcare Data Integration
+### Describing complex data structures that evolve
+Document databases allow embedding of documents to describe nested structures and easily tolerate variations in data in generations of documents.
+Specialized data formats like geospatial are efficiently supported.
+
+Example: Content Management System
+### Delivering data in high-performance applications
+MongoDB’s scale-out architecture can support huge numbers of transactions on humongous databases. 
+Unlike other databases that either cannot support such scale or can only do so with massive amounts of engineering and additional components, MongoDB has a clear path to scalability because of the way it was designed.
+MongoDB is scalable out of the box.
+
+Example: Online Gaming Platforms
+### Supporting hybrid and multi-cloud applications
+MongoDB can be deployed and run on a desktop, a massive cluster of computers in a data center, or in a public cloud, either as installed software or through MongoDB Atlas, a database-as-a-service product.
+
+Example: E-Commerce Platforms
+### Supporting agile development and collaboration
+Document databases put developers in charge of the data. 
+Data becomes like code that is friendly to developers. 
+This is far different from making developers use a strange system that requires a specialist. 
+Document databases also allow the evolution of the structure of the data as needs are better understood. 
+Collaboration and governance can allow one team to control one part of a document and another team to control another part.
+
+Example: Startups and Rapid Prototyping
+## Bad MongoDB Scenarios
+### Complex transactions
+Although mongodb supports multi-document ACID transactions, they are not as robust as RDBMS systems like PostgeSQL or MySQL.
+
+Example: Banking systems or financial applications that require complex, multi-step transactions and stringent consistency.
+
+### Heavy joins and Relationships
+MongoDB's design does not handle complex joins and relationships between data as efficiently as RDBMS.
+
+Example: Applications that rely heavily on complex joins, such as enterprise resource planning (ERP) systems, where multiple tables need to be joined to retrieve meaningful information.
+### Highly Structured Data with Fixed Schema
+MongoDB is schema-flexible, which can be a downside for applications where a rigid schema is beneficial for data integrity.
+
+Example: Applications requiring highly structured data with fixed relationships, like accounting software.
+### High Consistency and Data Integrity Requirements
+While MongoDB can be configured for strong consistency, its default behavior is eventual consistency, which might not be suitable for applications needing immediate consistency.
+
+Example: Stock trading platforms where accurate, real-time data is critical.
+
+### Write-Heavy Applications with High Concurrency
+MongoDB can face performance issues under high write loads with high concurrency, especially if the data needs to be written to a single shard or replica set.
+
+Example: Real-time analytics applications that require frequent and simultaneous writes.
+
