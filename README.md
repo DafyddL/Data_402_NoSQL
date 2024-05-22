@@ -1,5 +1,5 @@
 # NoSQL
-
+![](https://images.ctfassets.net/po4qc9xpmpuh/3DXFDcf1EO2D7mwb2r7RTM/62e5c1b9a070d21a0288d9dc9148a914/nosql.png)
 ## What is NoSQL?
 NoSQL (Not only SQL) databases are non-tabular databases and store data differently than relational tables.
 NoSQL databases store data in a format other than relational databases.
@@ -50,6 +50,7 @@ There are numerous NoSQL database categories, this includes
 - Each NoSQL implementation has its own syntax
 
 # MongoDB
+![](https://miro.medium.com/v2/resize:fit:1200/0*BmLKgrU_qFtakYsB.png)
 ## What is MongoDB?
 MongoDB is an opensource NoSQL database management program. 
 It is a tool that can manage, store, or retrieve document-oriented information.
