@@ -154,7 +154,7 @@ Command runs to find all entries with name "Chewbacca" and only return the name 
 
 Find a way to check the species name of admiral ackbar, this is in an embedded document ("Species")
 ```
-db.characters.find({name: "Ackbar"}, {species: 1})
+db.characters.find({name: "Ackbar"}, {"species.name": 1})
 ```
 Command runs to find all entries with name "Ackbar" and only returns the species name
 ### Exercise 6
@@ -167,7 +167,7 @@ Command runs and finds all entries with species name "human" and returns only th
 Write a query that gives us all the entries that have an eye_colour of either "yellow" or "orange"
 
 ```
-db.characters.find({$or: [{eye_colour: "yellow"}, {eye_colour: "orange"}]}) 
+db.characters.find({eye_color: {$in: ["yellow","orange"]}}) 
 ```
 Command runs and find all entries which match either their eye_color being orange or yellow.
 
@@ -176,12 +176,13 @@ You can combine filters using $and or $or
 
 Write a query that filter for characters that have both blue eyes and are female
 ```
-db.characters.find({$and: [{eye_color: "blue"}, {gender: "female"}]}) 
+db.characters.find({$and: [{eye_color: "blue"}, {gender: "female"}]},{name: 1, _id:0, eye_color: 1, gender: 1}) 
 ```
 
 Then write a query that filters for characters that have either blue eyes or are female
 ```
-db.characters.find({$or: [{eye_colour: "blue"}, {gender: "female"}]}) 
+db.characters.find({$or
+: [{eye_color: "blue"}, {gender: "female"}]},{name: 1, _id:0, eye_color: 1, gender: 1})
 ```
 ### Exercise 9 
 You can use comparison operators in your queries
@@ -322,3 +323,107 @@ e.g.
 {eye_color: {$in: ["orange","yellow"]}}
 ```
 returns all entries with eye_color not equal to orange or yellow
+
+
+## Mongodb Advanced exercises
+
+### Exercise 1
+
+Research aggregation in Mongodb. How does it work?
+
+Aggregation works by processing data records and returning computed results.
+Aggregations can compute complex results but do not modify the original data.
+
+Write a query that finds the total (sum) of the height of all human characters in the db
+```
+db.characters.aggregate([{$match:{species.name: "human"},{$group: {_id: null, totalHeight: {$sum: "$height"}}}])
+```
+This command aggregates through the data, filters so that only those with a species name of human are considered, and returns null id and the sum of the heights
+
+Write a query that finds the max height per homeworld
+```
+db.characters.aggregate([{$group: {_id: "$homeworld.name", maximumHeight: {$max: "$height"}}}])
+```
+This command aggregates through the data, groups it by the homeworld name and gives the maximum height of each species.
+
+Write a query that finds the mass and count per species. Filter out null values and sort by average mass (ascending order)
+
+Firstly, we need to convert the mass to integers similarly to what we did to height earlier
+One problem we have with this is some masses have commas in them, we need to remove these:
+```
+db.characters.updateMany({mass: "unknown"},{$set: {mass: null}})
+db.characters.updateMany({}},[{$set:{mass:{$replaceAll:input: "$mass",find: ",",replacement: ""
+db.characters.updateMany({mass: {$exists: true, $type : "string"}}, [{$set: {mass: {$toDouble: "$mass"}}}])
+```
+
+
+```
+db.characters.aggregate([{$match: {mass: {$ne: null}}},{$group:{_id: "$species.name", totalMass: {$sum: "$mass"}, count: {$sum: 1}}},{$sort: {totalMass: 1}}])
+```
+### Exercise 2
+
+Some aggregation doesn't require the .aggregate() method
+
+Use .distinct() to find a list of all species names in the database
+
+Use .count() or .countDocuments() to get a count of the amount of humans in the database
+
+What does .estimatedDocumentCount({}) do?
+
+### Exercise 3
+
+The starwars database uses embedded documents for things like species and homeworld. Another option would be to use references.
+
+Find the ObjectID for Darth Vader in the collection. Copy the output to your clipboard.
+
+Create a collection in starwars called "starships"
+
+Add Darth Vaders Tie-Fighter to that collection. Importantly we need to refernce him being the pilot. Code is below:
+
+db.createCollection("starships")
+
+db.starships.insertOne({
+  name: "TIE Advanced x1",
+  model: "Twin Ion Engine Advanced x1",
+  manufacturer: "Sienar Fleet Systems",
+  length: 9.2,
+  max_atmosphering_speed: 1200,
+  crew: 1,
+  passengers: 0,
+  pilot: ObjectId("5ea9890f98e05ffdb34de97e")
+})
+
+We can then use $lookup within an aggregate pipeline in order to add a field corresponding to the joined data:
+
+db.starships.aggregate([
+  { $lookup: {
+    from: "characters",
+    localField: "pilot",
+    foreignField: "_id",
+    as: "matched_pilot"
+  } }
+])
+
+Now, add the Millennium Falcon to the starships collection. Look up the data or make it up. The pilot must take an array with multiple ObjectIDs though.
+
+We could then use the same lookup as before - it works with ObjectIds in arrays too. But we'll get a huge amount of information back. To restrict it to certain fields, we could add a $project step to the pipeline, which projects certain data to the next step:
+
+db.starships.aggregate([
+  { $lookup: {
+    from: "characters",
+    localField: "pilot",
+    foreignField: "_id",
+    as: "matched_pilot"
+  } },
+  { $project: {name: 1, model: 1, "matched_pilot.name": 1}}
+])
+
+When first inserting documents that might have references, you can generate a new ObjectId and assign it to a variable var id = ObjectId(). That variable can then be set as the _id of the primary document and as the reference for the referencing document.
+
+### Exercise 4
+
+Well done! You have completed our Mongodb exercises!
+
+Feel free to play with Mongo more, explore the documentation and try out new things!
+
+You may want to use the starwars database or find a new one to work with.
