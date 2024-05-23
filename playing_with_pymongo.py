@@ -41,3 +41,13 @@ print("\n\nExercise 4 ---------------\n")
 humans_of_alderaan = db.characters.find({"species.name": "Human", "homeworld.name": "Alderaan"}, {"_id": 0, "name": 1, "species.name": 1, "homeworld.name": 1})
 for character in humans_of_alderaan:
     print(f"{character["name"]} is a {character["species"]["name"]} from {character["homeworld"]["name"]}")
+
+
+# Exercise 5 - What is the average height of female characters?
+print("\n\nExercise 5 ---------------\n")
+female_average_height = db.characters.aggregate([{"$match": {"gender": {"$eq": "female"}}},{"$group":{"_id": "$gender", "avgMass": {"$avg": "$mass"}}}])
+for item in female_average_height:
+    print(f"The average height of {item['_id']} characters is {item['avgMass']}kg")
+# Exercise 6 - Which character is the tallest?
+print("\n\nExercise 6 ---------------\n")
+tallest = db.characters.aggregate({"$group"})

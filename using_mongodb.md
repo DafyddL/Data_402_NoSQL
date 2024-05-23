@@ -352,13 +352,13 @@ Firstly, we need to convert the mass to integers similarly to what we did to hei
 One problem we have with this is some masses have commas in them, we need to remove these:
 ```
 db.characters.updateMany({mass: "unknown"},{$set: {mass: null}})
-db.characters.updateMany({}},[{$set:{mass:{$replaceAll:input: "$mass",find: ",",replacement: ""
+db.characters.updateMany({},[{$set:{mass:{$replaceAll: {input: "$mass",find: ",",replacement: ""}}}}])
 db.characters.updateMany({mass: {$exists: true, $type : "string"}}, [{$set: {mass: {$toDouble: "$mass"}}}])
 ```
 
 
 ```
-db.characters.aggregate([{$match: {mass: {$ne: null}}},{$group:{_id: "$species.name", totalMass: {$sum: "$mass"}, count: {$sum: 1}}},{$sort: {totalMass: 1}}])
+db.characters.aggregate([{$match: {mass: {$ne: null}}},{$group:{_id: "$species.name", avgMass: {$avg: "$mass"}, count: {$sum: 1}}},{$sort: {avgMass: 1}}])
 ```
 ### Exercise 2
 
@@ -366,22 +366,36 @@ Some aggregation doesn't require the .aggregate() method
 
 Use .distinct() to find a list of all species names in the database
 
+```
+db.characters.distinct("species.name")
+```
+
 Use .count() or .countDocuments() to get a count of the amount of humans in the database
+```
+db.characters.countDocuments({"species.name":"Human"})
+```
 
 What does .estimatedDocumentCount({}) do?
+
+Get the estimated document count using the metadata instead of using a query filter.
 
 ### Exercise 3
 
 The starwars database uses embedded documents for things like species and homeworld. Another option would be to use references.
 
 Find the ObjectID for Darth Vader in the collection. Copy the output to your clipboard.
+```
+db.characters.find({"name":"Darth Vader"}, {"_id":1})
+```
+`ObjectId('664f1fbea223886f6c904bce')`
 
 Create a collection in starwars called "starships"
-
-Add Darth Vaders Tie-Fighter to that collection. Importantly we need to refernce him being the pilot. Code is below:
-
+```
 db.createCollection("starships")
+```
 
+Add Darth Vaders Tie-Fighter to that collection. Importantly we need to reference him being the pilot. Code is below:
+```
 db.starships.insertOne({
   name: "TIE Advanced x1",
   model: "Twin Ion Engine Advanced x1",
@@ -390,11 +404,11 @@ db.starships.insertOne({
   max_atmosphering_speed: 1200,
   crew: 1,
   passengers: 0,
-  pilot: ObjectId("5ea9890f98e05ffdb34de97e")
+  pilot: ObjectId('664f1fbea223886f6c904bce')
 })
-
-We can then use $lookup within an aggregate pipeline in order to add a field corresponding to the joined data:
-
+```
+We can then use `$lookup` within an aggregate pipeline in order to add a field corresponding to the joined data:
+```
 db.starships.aggregate([
   { $lookup: {
     from: "characters",
@@ -403,11 +417,24 @@ db.starships.aggregate([
     as: "matched_pilot"
   } }
 ])
-
+```
 Now, add the Millennium Falcon to the starships collection. Look up the data or make it up. The pilot must take an array with multiple ObjectIDs though.
+```
+db.starships.insertOne({
+  name: "Millenium Falcon",
+  model: "Heavily modified YT-1300fp light freighter",
+  manufacturer: "Corellian Engineering Corporation",
+  length: 34.75,
+  max_atmosphering_speed: 1200,
+  crew: 1,
+  passengers: 6,
+  pilot: [ObjectId('664f1fc74dcf650d333ae8d3'),ObjectId('664f1fcd4fb66b927fabfa6a')]
+})
+```
+
 
 We could then use the same lookup as before - it works with ObjectIds in arrays too. But we'll get a huge amount of information back. To restrict it to certain fields, we could add a $project step to the pipeline, which projects certain data to the next step:
-
+```
 db.starships.aggregate([
   { $lookup: {
     from: "characters",
@@ -417,7 +444,7 @@ db.starships.aggregate([
   } },
   { $project: {name: 1, model: 1, "matched_pilot.name": 1}}
 ])
-
+```
 When first inserting documents that might have references, you can generate a new ObjectId and assign it to a variable var id = ObjectId(). That variable can then be set as the _id of the primary document and as the reference for the referencing document.
 
 ### Exercise 4
