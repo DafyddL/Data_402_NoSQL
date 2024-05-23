@@ -176,11 +176,26 @@ You can use comparison operators in your queries
 
 Write a query that finds characters with a height over 200cm
 ```
-db.characters.find({height: {$gt: "200"}})
+db.characters.find({height: {$gt: 200}})
 ```
 Note, Height has been recorded as a string and there are some missing a height value entirely. Can you find out how to convert all the height strings to ints?
 ```
-db.characters.aggregate([{$addFields:{height:{$toInt:"$height"}}}]) 
+db.characters.aggregate([{$addFields:{height:{$toInt:"$height", onError : null, onNull: null}}}]) 
+```
+I tried the above command, but it only does not update the database
+
+We can try updating the height, but it returns errors because some heights are set to "unknown"
+```
+db.characters.updateMany({},{$set:{height: {$toInt: $height}}})
+```
+
+Let's try turning all "unknown" heights to null
+```
+db.characters.updateMany({height: "unknown"},{$set: {height: null}})
+```
+and then 
+```
+db.characters.updateMany({height: {$exists: true, $type : "string"}}, [{$set: {height: {$toInt: "$height"}}}])
 ```
 Run your initial height query again to confirm your solution works.
 
@@ -191,11 +206,98 @@ Run your initial height query again to confirm your solution works.
 Experiment with the following operators. What does each do?
 
 #### `$eq`
-Checks for 
+Checks for equality
+
+Usage:
+```
+{ <field>: { $eq: <value> } }
+```
+e.g.
+```
+{height: {$eq: 180}}
+```
+returns all entries with height equal to 180
 #### `$gt`
+Checks if greater than value
+
+Usage:
+```
+{ <field>: { $gt: <value> } }
+```
+e.g.
+```
+{height: {$gt: 180}}
+```
+returns all heights greater than 180
 #### `$gte`
+Checks if greater than or equal to
+
+Usage:
+```
+{ <field>: { $gte: <value> } }
+```
+e.g.
+```
+{height: {$gte: 180}}
+```
+returns all heights greater than or equal to 180
 #### `$in`
+Checks if in array
+
+Usage:
+```
+{ <field>: { $in: [<value1>, <value2>, <value3> } }
+```
+e.g.
+```
+{eye_color: {$in: ["orange","yellow"]}}
+```
+returns all entries with eye_color equal to orange or yellow
 #### `$lt`
+Checks if less than
+
+Usage:
+```
+{ <field>: { $lt: <value> } }
+```
+e.g.
+```
+{height: {$lt: 180}}
+```
+returns all heights less than to 180
 #### `$lte`
+Checks if less than or equal to
+
+Usage:
+```
+{ <field>: { $lte: <value> } }
+```
+e.g.
+```
+{height: {$lte: 180}}
+```
+returns all heights less than or equal to 180
 #### `$ne`
+Checks for inequality
+
+Usage:
+```
+{ <field>: { $neq: <value> } }
+```
+e.g.
+```
+{height: {$neq: 180}}
+```
+returns all entries with height not equal to 180
 #### `$nin`
+Checks if not in array
+
+Usage:
+```
+{ <field>: { $nin: [<value1>, <value2>, <value3> } }
+```
+e.g.
+```
+{eye_color: {$in: ["orange","yellow"]}}
+```
+returns all entries with eye_color not equal to orange or yellow
