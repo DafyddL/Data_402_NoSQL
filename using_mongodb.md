@@ -97,16 +97,20 @@ Add validation
   }
 }
 ```
+This sets a validation that means that every entry must have a name, year, and imdb_rating
+
 insertOne
 ```
 db.films.insertOne({name: "Robocop", year: NumberInt(1987), imdb_rating: 7.6})
 db.films.insertOne({name: "The Dark Knight", year: NumberInt(2008), imdb_rating: 9.0})
 ```
+These insert one entry each into the collection
+
 insertMany
 ```
 db.films.insertMany([{name: "12 Angry Men", year: NumberInt(1957), imdb_rating: 9.0}, {name: "Avengers: Infinity War", year: NumberInt(2018), imdb_rating: 8.4}, {name: "Oppenheimer", year: NumberInt(2023), imdb_rating: 8.3}])
 ```
-
+This does similar to the insertOne, but inserts the entries all as one command
 ### Exercise 2
 Add a new document to the collection, add a new field to that document, remove that field and then remove the document entirely.
 
@@ -114,10 +118,11 @@ Add new document
 ```
 db.films.insertOne({name: "Toy Story 3", year: NumberInt(2010), imdb_rating: 8.3})
 ```
-Add new field
+Add new field that is a list of the genres
 ```
 db.films.updateOne({name: "Toy Story 3"}, {$set:{genre:["Animation","Adventure","Comedy"]}})
 ```
+
 
 Remove document entirely
 ```
@@ -138,26 +143,33 @@ Write a query that finds the Luke Skywalker document
 use starwars
 db.characters.find({name:"Luke Skywalker"})
 ```
+Make sure to be using the starwars database.
+Then find all entries with name "Luke Skywalker"
 
 Return the value of name and eye_colour only, from the "chewbacca" document
 ```
 db.characters.find({name:"Chewbacca"},{name: 1, eye_color: 1})
 ```
+Command runs to find all entries with name "Chewbacca" and only return the name and eye_color.
+
 Find a way to check the species name of admiral ackbar, this is in an embedded document ("Species")
 ```
 db.characters.find({name: "Ackbar"}, {species: 1})
 ```
+Command runs to find all entries with name "Ackbar" and only returns the species name
 ### Exercise 6
 Write a query that gives us only the names + homeworld names of humans in the database?
 ```
 db.characters.find({"species.name":"Human"},{name:1,"homeworld.name":1})
 ```
+Command runs and finds all entries with species name "human" and returns only their name and homeworld name.
 ### Exercise 7
 Write a query that gives us all the entries that have an eye_colour of either "yellow" or "orange"
 
 ```
 db.characters.find({$or: [{eye_colour: "yellow"}, {eye_colour: "orange"}]}) 
 ```
+Command runs and find all entries which match either their eye_color being orange or yellow.
 
 ### Exercise 8
 You can combine filters using $and or $or
@@ -178,16 +190,22 @@ Write a query that finds characters with a height over 200cm
 ```
 db.characters.find({height: {$gt: 200}})
 ```
+Command runs and find all entries with height greater than 200. It returns nothing since the height is stored as a string so cannot be compared to an integer.
+
 Note, Height has been recorded as a string and there are some missing a height value entirely. Can you find out how to convert all the height strings to ints?
 ```
 db.characters.aggregate([{$addFields:{height:{$toInt:"$height", onError : null, onNull: null}}}]) 
 ```
+Command runs and aggregates through the data, adding a field called height (thus replacing the old one) as the height as an int and sets the value to null if the original height cannot be converted to an int.
+
 I tried the above command, but it only does not update the database
 
 We can try updating the height, but it returns errors because some heights are set to "unknown"
 ```
 db.characters.updateMany({},{$set:{height: {$toInt: $height}}})
 ```
+Command runs and applies to all entries, where it tries to set all heights to the integer version of their height.
+Since there are some entries that cannot be converted, the command fails.
 
 Let's try turning all "unknown" heights to null
 ```
@@ -197,14 +215,17 @@ and then
 ```
 db.characters.updateMany({height: {$exists: true, $type : "string"}}, [{$set: {height: {$toInt: "$height"}}}])
 ```
-Run your initial height query again to confirm your solution works.
+Command runs and updates all height entries that exist (not null) and are of type string, and sets them to the integer version of the value.
 
+Run your initial height query again to confirm your solution works.
+```
+db.characters.find({height: {$gt: 200}})
+```
 
 
 ### Exercise 10
 
 Experiment with the following operators. What does each do?
-
 #### `$eq`
 Checks for equality
 
